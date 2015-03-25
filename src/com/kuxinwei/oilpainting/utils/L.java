@@ -9,7 +9,7 @@ package com.kuxinwei.oilpainting.utils;
 import android.util.Log;
 
 public class L {
-	private final static String TAG = "OpenCV_Android";
+	private final static String TAG = "OCV";
 
 	public static void d(String content) {
 		Log.d(TAG, content);
@@ -21,5 +21,9 @@ public class L {
 
 	public static void i(String content) {
 		Log.i(TAG, content);
+	}
+
+	public static void e(String content, Exception e) {
+		Log.e(TAG, content, e);
 	}
 }

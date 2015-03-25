@@ -4,6 +4,7 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.core.Rect;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
@@ -27,7 +28,6 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.kuxinwei.oilpainting.utils.FileUtils;
-import com.kuxinwei.oilpainting.utils.ImageUtils;
 
 public class MainActivity extends Activity implements OnClickListener {
 	private Button mCaputreBtn;
@@ -83,27 +83,12 @@ public class MainActivity extends Activity implements OnClickListener {
 			cursor.close();
 			if (isOpenCVInit) {
 				mCurrentImg = Highgui.imread(imgFilePath);
-				Imgproc.cvtColor(mCurrentImg, mCurrentImg, Imgproc.COLOR_RGB2YUV);
-				Imgproc.cvtColor(mCurrentImg, mCurrentImg, Imgproc.COLOR_YUV2RGB);
-//				mCurrentImg = ImageUtils.cvtYIQ2RGB(mCurrentImg);
+				Imgproc.cvtColor(mCurrentImg, mCurrentImg,
+						Imgproc.COLOR_RGB2YUV);
+				// Imgproc.cvtColor(mCurrentImg, mCurrentImg,
+				// Imgproc.COLOR_YUV2RGB);
+				// mCurrentImg = ImageUtils.cvtYIQ2RGB(mCurrentImg);
 				if (mCurrentImg != null) {
-					// Imgproc.resize(mCurrentImg, mCurrentImg, new Size(), 1,
-					// 1,
-					// Imgproc.INTER_AREA);
-					// int arr[][] = { { 642, 504 }, { 240, 527 }, { 602, 196 },
-					// { 559, 101 } };
-					 int EOP = imgFilePath.lastIndexOf(".");
-//					 for (int i = 0, size = arr.length; i < size; i++) {
-					 String tempFileName = imgFilePath.substring(0, EOP)
-					 + "_temp_"
-					 + 0
-					 + imgFilePath.substring(EOP,
-					 imgFilePath.length());
-					// Rect roi = new Rect(arr[i][0], arr[i][1], 64, 64);
-					// Mat subMat = mCurrentImg.submat(roi);
-					// Imgproc.cvtColor(subMat, subMat, Imgproc.COLOR_RGB2GRAY);
-					 FileUtils.write(tempFileName, mCurrentImg);
-//					 }
 					mCurBitmap = BitmapFactory.decodeFile(imgFilePath);
 					mDestImgv.setImageBitmap(mCurBitmap);
 					Toast.makeText(MainActivity.this,
@@ -111,34 +96,27 @@ public class MainActivity extends Activity implements OnClickListener {
 							.show();
 				}
 			}
-			// imgMat.su
-			// BitmapFactory.Options opts = new BitmapFactory.Options();
-			// opts.inSampleSize = 4;
-			// mCurBitmap = BitmapFactory.decodeFile(imgFilePath, opts);
-			// mDestImgv.setImageBitmap(mCurBitmap);
 		}
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 
-	public static final float KER_H[] = { -1, 0, 1, -1, 0, 1, -1, 0, 1 };
-	public static final float KER_V[] = { 1, 1, 1, 0, 0, 0, -1, -1, -1 };
-
-//	public float calDirectional(Mat mat) {
-//		Mat hMat = Mat.zeros(mat.size(), CvType.CV_64FC1);
-//		Mat vMat = Mat.zeros(mat.size(), CvType.CV_64FC1);
-//		int rows = mat.rows();
-//		int cols = mat.cols();
-//		for (int i = 1; i < rows - 1; i++) {
-//			for (int j = 1; j < rows - 2; j++) {
-//				double sumh = 0;
-//				for (int k = -1; k < 2; k++) {
-//					// sumh += mat.ste
-//				}
-//			}
-//		}
-//		return 0;
-//	}
-
+	// public static final float KER_H[] = { -1, 0, 1, -1, 0, 1, -1, 0, 1 };
+	// public static final float KER_V[] = { 1, 1, 1, 0, 0, 0, -1, -1, -1 };
+	// public float calDirectional(Mat mat) {
+	// Mat hMat = Mat.zeros(mat.size(), CvType.CV_64FC1);
+	// Mat vMat = Mat.zeros(mat.size(), CvType.CV_64FC1);
+	// int rows = mat.rows();
+	// int cols = mat.cols();
+	// for (int i = 1; i < rows - 1; i++) {
+	// for (int j = 1; j < rows - 2; j++) {
+	// double sumh = 0;
+	// for (int k = -1; k < 2; k++) {
+	// // sumh += mat.ste
+	// }
+	// }
+	// }
+	// return 0;
+	// }
 
 	@Override public void onClick(View v) {
 		int id = v.getId();
@@ -180,6 +158,11 @@ public class MainActivity extends Activity implements OnClickListener {
 			case LoaderCallbackInterface.SUCCESS: {
 				isOpenCVInit = true;
 				initVariabl();
+				new Thread(new Runnable() {
+					@Override public void run() {
+						PatchPool.init(MainActivity.this);
+					}
+				}).start();
 			}
 				break;
 			default: {
@@ -194,7 +177,5 @@ public class MainActivity extends Activity implements OnClickListener {
 	 * 
 	 */
 	protected void initVariabl() {
-//		MAT_RGB2YIQ = new MatOfDouble(0.299, 0.587, 0.114, 0.596, -0.275,
-//				-0.321, 0.212, -0.523, 0.311);
 	}
 }
