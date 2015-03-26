@@ -27,6 +27,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.kuxinwei.oilpainting.utils.ImageUtils;
+import com.kuxinwei.oilpainting.utils.L;
+import com.kuxinwei.oilpainting.utils.PaintUtils;
 import com.kuxinwei.oilpainting.utils.UIUtils;
 
 public class MainActivity extends Activity implements OnClickListener {
@@ -85,8 +87,8 @@ public class MainActivity extends Activity implements OnClickListener {
 			if (isOpenCVInit) {
 
 				mCurrentImg = Highgui.imread(imgFilePath);
-				Imgproc.cvtColor(mCurrentImg, mCurrentImg,
-						Imgproc.COLOR_RGB2YUV);
+				// Imgproc.cvtColor(mCurrentImg, mCurrentImg,
+				// Imgproc.COLOR_RGB2YUV);
 				// Imgproc.cvtColor(mCurrentImg, mCurrentImg,
 				// Imgproc.COLOR_YUV2RGB);
 				// mCurrentImg = ImageUtils.cvtYIQ2RGB(mCurrentImg);
@@ -141,9 +143,8 @@ public class MainActivity extends Activity implements OnClickListener {
 
 	class ProcessThread extends Thread {
 		@Override public void run() {
-			if (imgFilePath == null)
-				return;
-			ImageUtils.processImage(imgFilePath);
+			if (mCurrentImg != null)
+				PaintUtils.paint(mCurrentImg);
 			mHandler.obtainMessage(MSG_SHOW_CONTENT, "Mission finish")
 					.sendToTarget();
 		}
@@ -174,7 +175,7 @@ public class MainActivity extends Activity implements OnClickListener {
 				isOpenCVInit = true;
 				new Thread(new Runnable() {
 					@Override public void run() {
-						PatchPool.init(MainActivity.this);
+//						PatchPool.init(MainActivity.this);
 					}
 				}).start();
 			}
