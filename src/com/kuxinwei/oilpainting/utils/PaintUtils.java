@@ -25,7 +25,7 @@ public class PaintUtils {
 	public static final float GAUSSIAN_FACTOR = 0.6f;
 	public static final float GRID_FACTOR = 0.5f;
 	private static final int THRESHOLD = 75;
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false;
 
 	public static Mat paint(Mat srcImg) {
 		Mat resultImg = Mat.zeros(srcImg.size(), CvType.CV_16SC3);
