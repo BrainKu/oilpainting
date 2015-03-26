@@ -23,28 +23,27 @@ public class PaintUtils {
 
 	public static final int[] DEFAULT_RADIUS = { 8, 4, 2 };
 	public static final float GAUSSIAN_FACTOR = 0.6f;
-	public static final float GRID_FACTOR = 1.0f;
-	private static final int THRESHOLD = 100;
+	public static final float GRID_FACTOR = 0.5f;
+	private static final int THRESHOLD = 75;
 	public static final boolean DEBUG = true;
 
 	public static Mat paint(Mat srcImg) {
-		// Mat resultImg = Mat.ones(srcImg.size(), CvType.CV_16SC3);
-		Mat resultImg = srcImg.submat(0, (int) srcImg.size().height, 0,
-				(int) srcImg.size().width);
+		Mat resultImg = Mat.zeros(srcImg.size(), CvType.CV_16SC3);
 		for (int index = 0, size = DEFAULT_RADIUS.length; index < size; index++) {
 			int radius = DEFAULT_RADIUS[index];
 			float sigma = GAUSSIAN_FACTOR * DEFAULT_RADIUS[index];
 			Mat referImg = Mat.zeros(srcImg.size(), srcImg.type());
-			Imgproc.GaussianBlur(srcImg, referImg, new Size(7, 7), sigma);
+			Imgproc.GaussianBlur(srcImg, referImg, new Size(radius + 1,
+					radius + 1), sigma);
 			if (DEBUG)
 				FileUtils.write(ImageUtils.getTempFilePatch(
 						"/storage/emulated/0/PIC/file.jpg", "_gaussian_"
 								+ index), referImg);
-			paintLayer(resultImg, srcImg, referImg, radius);
+			paintLayer(resultImg, referImg, radius);
 			if (DEBUG)
 				FileUtils.write(ImageUtils.getTempFilePatch(
 						"/storage/emulated/0/PIC/file.jpg", "_layer_" + index),
-						referImg);
+						resultImg);
 		}
 		if (DEBUG)
 			FileUtils.write(ImageUtils.getTempFilePatch(
@@ -53,19 +52,18 @@ public class PaintUtils {
 		return resultImg;
 	}
 
-	private static void paintLayer(Mat resultImg, Mat srcImg, Mat referImg,
-			int radius) {
+	private static void paintLayer(Mat resultImg, Mat referImg, int radius) {
 		List<Stroke> strokeList = new ArrayList<Stroke>();
-		int width = srcImg.cols();
-		int height = srcImg.rows();
-		srcImg.convertTo(srcImg, CvType.CV_16SC3);
+		int width = resultImg.cols();
+		int height = resultImg.rows();
+		// resultImg.convertTo(resultImg, CvType.CV_16SC3);
 		referImg.convertTo(referImg, CvType.CV_16SC3);
 		short srcColArr[][] = new short[3][width * height];
 		short referColArr[][] = new short[3][width * height];
 		int difference[][] = new int[height][width];
 		ArrayList<Mat> srcChannels = new ArrayList<Mat>();
 		ArrayList<Mat> referChannels = new ArrayList<Mat>();
-		Core.split(srcImg, srcChannels);
+		Core.split(resultImg, srcChannels);
 		Core.split(referImg, referChannels);
 		extractPixel(srcChannels, srcColArr);
 		extractPixel(referChannels, referColArr);
