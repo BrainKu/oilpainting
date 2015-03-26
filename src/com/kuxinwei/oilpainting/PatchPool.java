@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -46,10 +48,17 @@ public class PatchPool {
 
 	// FIXME maybe throw exception
 	public static MatData getPatch(int index) {
+		if (index >= TOTAL_COUNT || index < 0)
+			return null;
 		MatData matData = CACHE_POOL.get(index);
 		return matData;
 	}
 
+	// TODO
+	public static int getNearLumiancePatch(Mat src, int row, int col) {
+		return 0;
+	}
+	public static final int PATCH_SIZE = 32;
 	public static class MatData {
 		public Mat mMat;
 		public int mRow;
@@ -63,6 +72,8 @@ public class PatchPool {
 		}
 
 		public void init() {
+			Imgproc.pyrDown(mMat, mMat, new Size(0.5, 0.5));
+			Imgproc.GaussianBlur(mMat, mMat, new Size(3, 3), 1);
 			mRow = mMat.rows();
 			mCol = mMat.cols();
 			mYarr = new byte[mRow * mCol];

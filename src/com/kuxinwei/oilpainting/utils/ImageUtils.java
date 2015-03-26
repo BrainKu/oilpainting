@@ -7,12 +7,17 @@
 package com.kuxinwei.oilpainting.utils;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
+
+import com.kuxinwei.oilpainting.PatchPool;
+import com.kuxinwei.oilpainting.PatchPool.MatData;
 
 public class ImageUtils {
 
@@ -100,5 +105,58 @@ public class ImageUtils {
 			Mat subMat = curImg.submat(roi);
 			FileUtils.write(tempFileName, subMat);
 		}
+	}
+
+	public static void convertToRGB(Mat srcMat) {
+		Imgproc.cvtColor(srcMat, srcMat, Imgproc.COLOR_YUV2RGB);
+	}
+
+	private final static float k = 0.8f;
+
+	public static void processImage(String imgFilePath) {
+		Mat mCurrentImg = Highgui.imread(imgFilePath);
+		Imgproc.cvtColor(mCurrentImg, mCurrentImg, Imgproc.COLOR_RGB2YUV);
+		mChannels.clear();
+		Core.split(mCurrentImg, mChannels);
+		Mat yMat = mChannels.get(0);
+		int rows = yMat.rows();
+		int cols = yMat.cols();
+		Random random = new Random();
+		byte[] pixel = new byte[rows * cols];
+		yMat.get(0, 0, pixel);
+		for (int i = 0; i < rows; i += PatchPool.PATCH_SIZE) {
+			for (int j = 0; j < cols; j += PatchPool.PATCH_SIZE) {
+				// int index = Math.abs(random.nextInt() % 4);
+				MatData data = PatchPool.getPatch(3);
+				int height = data.mRow;
+				int width = data.mCol;
+				for (int h = 0; h < height; h++) {
+					int tH = i + h;
+					if (tH >= rows)
+						break;
+					for (int w = 0; w < width; w++) {
+						int pos = h * width + w;
+						int curPos = j + w;
+						if (curPos >= cols)
+							break;
+						int startX = tH * cols + curPos;
+						pixel[startX] = (byte) (pixel[startX] + k
+								* (data.mYarr[pos] - data.mMeanLumian));
+					}
+				}
+			}
+		}
+		yMat.put(0, 0, pixel);
+		mChannels.set(0, yMat);
+		Core.merge(mChannels, mCurrentImg);
+		convertToRGB(mCurrentImg);
+		FileUtils.write(getTempFilePatch(imgFilePath, "_pocess"), mCurrentImg);
+		// if (PatchPool.getPatch(index))
+	}
+
+	public static String getTempFilePatch(String imgFilePath, String tmpMsg) {
+		int EOP = imgFilePath.lastIndexOf(".");
+		return imgFilePath.substring(0, EOP) + tmpMsg
+				+ imgFilePath.substring(EOP, imgFilePath.length());
 	}
 }

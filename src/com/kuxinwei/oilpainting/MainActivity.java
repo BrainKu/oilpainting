@@ -4,7 +4,6 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
@@ -27,7 +26,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.kuxinwei.oilpainting.utils.FileUtils;
+import com.kuxinwei.oilpainting.utils.ImageUtils;
+import com.kuxinwei.oilpainting.utils.UIUtils;
 
 public class MainActivity extends Activity implements OnClickListener {
 	private Button mCaputreBtn;
@@ -70,6 +70,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	}
 
 	private Bitmap mCurBitmap = null;
+	private String imgFilePath;
 
 	@Override protected void onActivityResult(int requestCode, int resultCode,
 			Intent data) {
@@ -79,9 +80,10 @@ public class MainActivity extends Activity implements OnClickListener {
 					new String[] { MediaStore.Images.ImageColumns.DATA }, null,
 					null, null);
 			cursor.moveToFirst();
-			String imgFilePath = cursor.getString(0);
+			imgFilePath = cursor.getString(0);
 			cursor.close();
 			if (isOpenCVInit) {
+
 				mCurrentImg = Highgui.imread(imgFilePath);
 				Imgproc.cvtColor(mCurrentImg, mCurrentImg,
 						Imgproc.COLOR_RGB2YUV);
@@ -139,13 +141,26 @@ public class MainActivity extends Activity implements OnClickListener {
 
 	class ProcessThread extends Thread {
 		@Override public void run() {
-
+			if (imgFilePath == null)
+				return;
+			ImageUtils.processImage(imgFilePath);
+			mHandler.obtainMessage(MSG_SHOW_CONTENT, "Mission finish")
+					.sendToTarget();
 		}
 	}
 
-	private Handler handler = new Handler(new Handler.Callback() {
+	public static final int MSG_SHOW_CONTENT = 1001;
+	private Handler mHandler = new Handler(new Handler.Callback() {
 
 		@Override public boolean handleMessage(Message msg) {
+			switch (msg.what) {
+			case MSG_SHOW_CONTENT:
+				UIUtils.showToast(getApplicationContext(), msg.obj.toString());
+				break;
+
+			default:
+				break;
+			}
 			return false;
 		}
 	});
@@ -157,7 +172,6 @@ public class MainActivity extends Activity implements OnClickListener {
 			switch (status) {
 			case LoaderCallbackInterface.SUCCESS: {
 				isOpenCVInit = true;
-				initVariabl();
 				new Thread(new Runnable() {
 					@Override public void run() {
 						PatchPool.init(MainActivity.this);
@@ -172,10 +186,4 @@ public class MainActivity extends Activity implements OnClickListener {
 			}
 		}
 	};
-
-	/**
-	 * 
-	 */
-	protected void initVariabl() {
-	}
 }
